@@ -1,0 +1,8 @@
+---
+title: "About Me"
+author: "Carson Zhang (cxzhang4)"
+date: "5/17/2019"
+output: html_document
+---
+
+UIUC Statistics and Computer Science '20
