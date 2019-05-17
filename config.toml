@@ -1,4 +1,4 @@
-baseURL = "https://www.carsonzhang.com"
+baseURL = "http://www.carsonzhang.com/"
 languageCode = "en-us"
 defaultContentLanguage = "en"
 title = "Carson Zhang"
@@ -12,6 +12,8 @@ copyright = "This work is licensed under a Creative Commons Attribution-NonComme
 enableEmoji = true  # Shorthand emojis in content files - https://gohugo.io/functions/emojify/
 # googleAnalytics = "UA-123-45"
 # disqusShortname = "yourdiscussshortname"
+
+relativeURLs = true
 
 [author]
   name = "Carson Zhang"
