@@ -58,10 +58,6 @@ relativeURLs = true
     url = "https://twitter.com/zhang_carson"
 
   [[params.social]]
-    name = "instagram"
-    url = "https://instagram.com/carsonzhang1031"
-
-  [[params.social]]
     name = "github"
     url = "https://github.com/cxzhang4"
     
