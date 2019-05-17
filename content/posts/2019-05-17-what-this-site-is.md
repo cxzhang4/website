@@ -9,4 +9,6 @@ comments: no
 images: ~
 ---
 
-I will blog about topics within statistics and computer science. Will also display a portfolio of my projects. May share some other thoughts as well.
+- Statistics and computer science topics
+- Explanations of technical projects
+- Other thoughts I decide to share
