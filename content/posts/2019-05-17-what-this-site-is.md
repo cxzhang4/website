@@ -9,6 +9,6 @@ comments: no
 images: ~
 ---
 
-- Statistics and computer science topics
-- Explanations of technical projects
+- Explanations of statistics and computer science topics
+- Technical project portfolio
 - Other thoughts I decide to share
