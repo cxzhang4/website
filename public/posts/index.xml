@@ -15,8 +15,12 @@
 			<pubDate>Fri, 17 May 2019 00:00:00 +0000</pubDate>
 			
 			<guid>/posts/what-this-site-is/</guid>
-			<description>I will blog about topics within statistics and computer science. Will also display a portfolio of my projects. May share some other thoughts as well.</description>
-			<content type="html"><![CDATA[<p>I will blog about topics within statistics and computer science. Will also display a portfolio of my projects. May share some other thoughts as well.</p>
+			<description> Explanations of statistics and computer science topics Technical project portfolio Other thoughts I decide to share  </description>
+			<content type="html"><![CDATA[<ul>
+<li>Explanations of statistics and computer science topics</li>
+<li>Technical project portfolio</li>
+<li>Other thoughts I decide to share</li>
+</ul>
 ]]></content>
 		</item>
 		
