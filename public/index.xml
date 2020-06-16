@@ -18,7 +18,16 @@
       <pubDate>Tue, 13 Aug 2019 00:00:00 +0000</pubDate>
       
       <guid>/post/placeholder/</guid>
-      <description></description>
+      <description>Placeholder</description>
+    </item>
+    
+    <item>
+      <title>Placeholder</title>
+      <link>/posts/placeholder/</link>
+      <pubDate>Tue, 13 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/posts/placeholder/</guid>
+      <description>Placeholder</description>
     </item>
     
     <item>
@@ -30,17 +39,6 @@
       <description>I am a senior studying Statistics and Computer Science at UIUC.
 This site will contain:
  Explanations of statistics and computer science topics Technical project portfolio Other thoughts I decide to share  </description>
-    </item>
-    
-    <item>
-      <title>Hello R Markdown</title>
-      <link>/post/2015-07-23-r-rmarkdown/</link>
-      <pubDate>Thu, 23 Jul 2015 21:13:14 -0500</pubDate>
-      
-      <guid>/post/2015-07-23-r-rmarkdown/</guid>
-      <description>R Markdown This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
-You can embed an R code chunk like this:
-summary(cars) ## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.98 ## 3rd Qu.</description>
     </item>
     
   </channel>
