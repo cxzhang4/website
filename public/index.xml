@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Carson Zhang</title>
@@ -11,6 +11,15 @@
     
 	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>About</title>
+      <link>/about/</link>
+      <pubDate>Tue, 16 Jun 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/about/</guid>
+      <description>I studied Statistics and Computer Science at UIUC.</description>
+    </item>
     
     <item>
       <title>Placeholder</title>
@@ -28,17 +37,6 @@
       
       <guid>/posts/placeholder/</guid>
       <description>Placeholder</description>
-    </item>
-    
-    <item>
-      <title>About</title>
-      <link>/about/</link>
-      <pubDate>Fri, 17 May 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/about/</guid>
-      <description>I am a senior studying Statistics and Computer Science at UIUC.
-This site will contain:
- Explanations of statistics and computer science topics Technical project portfolio Other thoughts I decide to share  </description>
     </item>
     
   </channel>

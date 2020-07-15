@@ -56,16 +56,12 @@ relativeURLs = true
   # Social Icons
   # Check https://github.com/Track3/hermit#social-icons for more info.
   [[params.social]]
-    name = "twitter"
-    url = "https://twitter.com/zhang_carson"
-
-  [[params.social]]
     name = "github"
     url = "https://github.com/cxzhang4"
     
   [[params.social]]
     name = "linkedin"
-    url = "https://www.linkedin.com/in/carson-zhang-5aa900137/"
+    url = "https://www.linkedin.com/in/carson-xia-zhang/"
 
 [menu]
 
