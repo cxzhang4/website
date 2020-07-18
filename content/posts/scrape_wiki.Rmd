@@ -1,0 +1,107 @@
+---
+title: "Scraping Wikipedia"
+author: "Carson Zhang (cxzhang4)"
+date: "7/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(rvest)
+wiki = read_html("https://en.wikipedia.org/wiki/List_of_highest-certified_music_artists_in_the_United_States")
+```
+
+```{r}
+artists = wiki %>%
+  html_node("table:nth-of-type(2)") %>%
+  html_table() %>%
+  as_tibble()
+```
+
+```{r}
+artists %>% 
+  glimpse()
+```
+
+```{r}
+artist_hrefs = wiki %>%
+  html_nodes("table:nth-of-type(2) tbody a[href^=\"/wiki\"]") %>%
+  html_attr("href")
+
+artist_hrefs
+```
+
+```{r}
+wikipedia_base_url = "https://en.wikipedia.org"
+artist_links = paste(wikipedia_base_url, artist_hrefs, sep = "")
+
+artist_links
+```
+
+```{r}
+drake_link = "https://en.wikipedia.org/wiki/Meghan_Trainor"
+
+drake_page = read_html(drake_link) %>%
+  html_nodes("th.navbox-group:contains(\"Studio albums\")")
+
+drake_page %>%
+  "["(1)
+```
+
+```{r}
+drake_albums = drake_page %>%
+  html_text()
+
+drake_tbl = tibble(artist = rep("Drake", times = length(drake_albums)),
+                   album = drake_albums)
+
+genius_albums %>%
+  bind_rows(drake_tbl)
+```
+
+```{r}
+genius_albums = tibble(artist = character(), album = character())
+
+get_albums = function(artist_url, artist_name) {
+  album_names = read_html(artist_url) %>%
+    # box on bottom of wikipedia page 
+    html_nodes("th.navbox-group:contains(\"Studio albums\") + 
+             td i a[href^=\"/wiki/\"]") %>%
+    # if there are multiple associated acts with studio albums: 
+    # first one should be main artist
+    "["(1) %>%
+    html_text()
+  
+  df = tibble(artist = rep(artist_name, times = length(album_names)), 
+              album = album_names)
+  
+  df
+}
+```
+
+```{r}
+# map2_dfr will do the work of binding the rows togethere
+genius_albums = map2_dfr(artist_links, artists$Name, get_albums)
+```
+
+```{r}
+artists %>%
+  right_join(genius_albums, by = c("Name" =  "artist"))
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
