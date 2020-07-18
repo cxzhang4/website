@@ -43,42 +43,56 @@ artist_links
 ```
 
 ```{r}
-drake_link = "https://en.wikipedia.org/wiki/Meghan_Trainor"
-
-drake_page = read_html(drake_link) %>%
-  html_nodes("th.navbox-group:contains(\"Studio albums\")")
-
-drake_page %>%
-  "["(1)
+# drake_link = "https://en.wikipedia.org/wiki/Meghan_Trainor"
+# 
+# drake_page = read_html(drake_link) %>%
+#   html_nodes("th.navbox-group:contains(\"Studio albums\")")
+# 
+# drake_page %>%
+#   "["(1)
 ```
 
 ```{r}
-drake_albums = drake_page %>%
-  html_text()
+# drake_albums = drake_page %>%
+#   html_text()
+# 
+# drake_tbl = tibble(artist = rep("Drake", times = length(drake_albums)),
+#                    album = drake_albums)
 
-drake_tbl = tibble(artist = rep("Drake", times = length(drake_albums)),
-                   album = drake_albums)
-
-genius_albums %>%
-  bind_rows(drake_tbl)
+# genius_albums %>%
+#   bind_rows(drake_tbl)
 ```
 
 ```{r}
+artist_underscores = gsub(" ", "_", artists$Name)
+
 genius_albums = tibble(artist = character(), album = character())
 
 get_albums = function(artist_url, artist_name) {
+  artist_id = gsub(" ", "_", artist_name)
+  # build CSS selector strnig
+  big_navbox = paste("div.navbox[aria-labelledby=\"", artist_id, "\"]",
+                     sep = "")
+  
+  album_list = "th.navbox-group:contains(\"tudio albums\") + td i a[href^=\"/wiki/\"]"
+  
+  selector = paste(big_navbox, album_list, sep = " ")
+  
+  # print(selector)
+  
   album_names = read_html(artist_url) %>%
     # box on bottom of wikipedia page 
-    html_nodes("th.navbox-group:contains(\"Studio albums\") + 
-             td i a[href^=\"/wiki/\"]") %>%
+    html_nodes(selector) %>%
     # if there are multiple associated acts with studio albums: 
     # first one should be main artist
-    "["(1) %>%
+    # "["(1) %>%
     html_text()
   
   df = tibble(artist = rep(artist_name, times = length(album_names)), 
               album = album_names)
   
+  # genius_albums = genius_albums %>%
+  #   bind_rows(df)
   df
 }
 ```
@@ -93,8 +107,25 @@ artists %>%
   right_join(genius_albums, by = c("Name" =  "artist"))
 ```
 
-```{r}
+Scrape singles - use their sentiments as separate feature (allowing it to be weighted differently)
 
+```{r}
+get_singles = function(artist_url, artist_name) {
+  single_names = read_html(artist_url) %>%
+    html_nodes("th.navbox-group:contains(\"Singles\") + 
+             td i a[href^=\"/wiki/\"]") %>%
+    "["(1) %>%
+    html_text()
+  
+  df = tibble(artist = rep(artist_name, times = length(single_names)), 
+              track_title = single_names)
+  
+  df
+}
+
+singles_df = tibble(artist = character(), track_title = character())
+
+singles_df = map2_dfr(artist_links, artists$Name, get_singles)
 ```
 
 
