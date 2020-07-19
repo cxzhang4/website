@@ -12,11 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(rvest)
-wiki = read_html("https://en.wikipedia.org/wiki/List_of_highest-certified_music_artists_in_the_United_States")
+pop_artists_page = read_html("https://en.wikipedia.org/wiki/List_of_highest-certified_music_artists_in_the_United_States")
 ```
 
 ```{r}
-artists = wiki %>%
+artists = pop_artists_page %>%
   html_node("table:nth-of-type(2)") %>%
   html_table() %>%
   as_tibble()
@@ -28,7 +28,7 @@ artists %>%
 ```
 
 ```{r}
-artist_hrefs = wiki %>%
+artist_hrefs = pop_artists_page %>%
   html_nodes("table:nth-of-type(2) tbody a[href^=\"/wiki\"]") %>%
   html_attr("href")
 
@@ -36,8 +36,8 @@ artist_hrefs
 ```
 
 ```{r}
-wikipedia_base_url = "https://en.wikipedia.org"
-artist_links = paste(wikipedia_base_url, artist_hrefs, sep = "")
+wiki_base_url = "https://en.wikipedia.org"
+artist_links = paste(wiki_base_url, artist_hrefs, sep = "")
 
 artist_links
 ```
@@ -64,9 +64,7 @@ artist_links
 ```
 
 ```{r}
-artist_underscores = gsub(" ", "_", artists$Name)
-
-genius_albums = tibble(artist = character(), album = character())
+# artist_underscores = gsub(" ", "_", artists$Name)
 
 get_albums = function(artist_url, artist_name) {
   artist_id = gsub(" ", "_", artist_name)
@@ -98,41 +96,69 @@ get_albums = function(artist_url, artist_name) {
 ```
 
 ```{r}
+# genius_albums = tibble(artist = character(), album = character())
+```
+
+```{r}
 # map2_dfr will do the work of binding the rows togethere
 genius_albums = map2_dfr(artist_links, artists$Name, get_albums)
 ```
 
 ```{r}
-artists %>%
-  right_join(genius_albums, by = c("Name" =  "artist"))
+# artists %>%
+#   right_join(genius_albums, by = c("Name" =  "artist"))
 ```
 
 Scrape singles - use their sentiments as separate feature (allowing it to be weighted differently)
 
 ```{r}
-get_singles = function(artist_url, artist_name) {
-  single_names = read_html(artist_url) %>%
-    html_nodes("th.navbox-group:contains(\"Singles\") + 
-             td i a[href^=\"/wiki/\"]") %>%
-    "["(1) %>%
-    html_text()
-  
-  df = tibble(artist = rep(artist_name, times = length(single_names)), 
-              track_title = single_names)
-  
-  df
-}
-
-singles_df = tibble(artist = character(), track_title = character())
-
-singles_df = map2_dfr(artist_links, artists$Name, get_singles)
+# get_singles = function(artist_url, artist_name) {
+#   single_names = read_html(artist_url) %>%
+#     html_nodes("th.navbox-group:contains(\"Singles\") + 
+#              td i a[href^=\"/wiki/\"]") %>%
+#     "["(1) %>%
+#     html_text()
+#   
+#   df = tibble(artist = rep(artist_name, times = length(single_names)), 
+#               track_title = single_names)
+#   
+#   df
+# }
+# 
+# singles_df = tibble(artist = character(), track_title = character())
+# 
+# singles_df = map2_dfr(artist_links, artists$Name, get_singles)
 ```
 
+## Error check scraping code
 
+```{r}
+missing_artists = setdiff(artists$Name, genius_albums$artist)
+```
 
+It mostly works: just `r missing_artists` is missing.
 
+Since she just has one album, I'll add it manually.
 
+```{r}
+genius_albums = genius_albums %>%
+  add_row(artist = "Billie Eilish", album = "When We All Fall Asleep, Where Do We Go?")
+```
 
+```{r}
+genius_albums %>%
+  filter(artist == "Billie Eilish")
+```
 
+## Get lyrics from Genius
+
+```{r}
+library(genius)
+
+pop_lyrics = genius_albums %>%
+  add_genius(artist, album, type = "album")
+
+write_csv(pop_lyrics, "pop_lyrics.csv")
+```
 
 
