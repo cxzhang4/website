@@ -101,7 +101,10 @@ get_albums = function(artist_url, artist_name) {
 
 ```{r}
 # map2_dfr will do the work of binding the rows togethere
-genius_albums = map2_dfr(artist_links, artists$Name, get_albums)
+# genius_albums = map2_dfr(artist_links, artists$Name, get_albums)
+
+# write_csv(genius_albums, "artist_albums.csv")
+genius_albums = read_csv("artist_albums.csv")
 ```
 
 ```{r}
@@ -134,6 +137,7 @@ Scrape singles - use their sentiments as separate feature (allowing it to be wei
 
 ```{r}
 missing_artists = setdiff(artists$Name, genius_albums$artist)
+missing_artists
 ```
 
 It mostly works: just `r missing_artists` is missing.
@@ -146,19 +150,61 @@ genius_albums = genius_albums %>%
 ```
 
 ```{r}
-genius_albums %>%
-  filter(artist == "Billie Eilish")
+write_csv(genius_albums, "artist_albums.csv")
 ```
 
 ## Get lyrics from Genius
 
 ```{r}
-library(genius)
+# library(genius)
 
-pop_lyrics = genius_albums %>%
-  add_genius(artist, album, type = "album")
+# pop_lyrics = genius_albums %>%
+#   add_genius(artist, album, type = "album")
 
-write_csv(pop_lyrics, "pop_lyrics.csv")
+# write_csv(pop_lyrics, "pop_lyrics.csv")
+artist_albums = read_csv("artist_albums.csv")
+pop_lyrics = read_csv("pop_lyrics.csv")
 ```
 
+```{r}
+setdiff(artist_albums$album, pop_lyrics$album)
+```
+
+```{r}
+unhandled_albums = artist_albums %>%
+  filter(album %in% setdiff(artist_albums$album, pop_lyrics$album))
+```
+
+```{r}
+unhandled_lyrics = unhandled_albums %>%
+  add_genius(artist, album, type = "album")
+```
+
+```{r}
+unhandled_albums = unhandled_albums %>%
+  filter(album %in% setdiff(unhandled_albums$album, unhandled_lyrics$album))
+```
+
+```{r}
+unhandled_albums
+```
+
+```{r}
+pop_lyrics %>%
+  bind_rows(unhandled_lyrics) %>%
+  write_csv("pop_lyrics.csv")
+```
+
+```{r}
+pop_lyrics = read_csv("pop_lyrics.csv")
+```
+
+```{r}
+pop_lyrics %>%
+  filter(album == "Folklore")
+```
+
+```{r}
+
+```
 
