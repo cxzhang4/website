@@ -200,11 +200,75 @@ pop_lyrics = read_csv("pop_lyrics.csv")
 ```
 
 ```{r}
-pop_lyrics %>%
-  filter(album == "Folklore")
+# pop_lyrics %>%
+#   filter(album == "Folklore")
 ```
 
 ```{r}
-
+p_text <- artist_links[[1]] %>%
+  read_html() %>%
+  html_nodes("p") %>%
+  html_text()
 ```
+
+
+```{r}
+p_text %>%
+  str_count("his") %>%
+  sum()
+
+p_text %>%
+  str_count("her") %>%
+  sum()
+
+p_text %>%
+  str_count("their") %>%
+  sum()
+
+# groups will likely get lumped in with non-binary people
+# but analysis will be restricted to binary-identifying people
+get_bin_gender = function(artist_url) {
+  p_text = artist_url %>%
+    read_html() %>%
+    html_nodes("p") %>%
+    html_text()
+  
+  genders = c("M", "F", "Q")
+  
+  his_count = p_text %>%
+    str_count("his") %>%
+    sum()
+  
+  her_count = p_text %>%
+    str_count("her") %>%
+    sum()
+  
+  their_count = p_text %>%
+    str_count("their") %>%
+    sum()
+  
+  genders[which.max(c(his_count, her_count, their_count))] %>%
+    return()
+}
+```
+
+```{r}
+artist_genders = map_chr(artist_links, get_bin_gender)
+```
+
+```{r}
+names_and_genders = tibble(artist = artists$Name, gender = artist_genders)
+```
+
+```{r}
+names_and_genders
+```
+
+```{r}
+# pop_lyrics = pop_lyrics %>%
+  # inner_join(names_and_genders, by = "artist")
+pop_lyrics = read_csv("pop_lyrics.csv")
+# write_csv(pop_lyrics, "pop_lyrics.csv")
+```
+
 
