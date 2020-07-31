@@ -1,0 +1,292 @@
+---
+title: "Text Analysis of Pop Lyrics: Sentiment, Word Frequency"
+author: "Carson Zhang (cxzhang4)"
+date: "7/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(tidytext)
+```
+
+```{r}
+artist_albums = read_csv("artist_albums.csv")
+pop_lyrics = read_csv("pop_lyrics.csv")
+pop_lyrics_by_word = pop_lyrics %>%
+  unnest_tokens(word, lyric)
+```
+
+```{r}
+lyrics_afinn = pop_lyrics_by_word %>%
+  inner_join(get_sentiments("afinn")) %>%
+  group_by(index = track_title, album, artist, gender) %>%
+  summarise(sentiment = sum(value)) %>%
+  mutate(method = "AFINN")
+
+lyrics_bing_and_nrc = bind_rows(pop_lyrics_by_word %>%
+                               inner_join(get_sentiments("bing")) %>%
+                               mutate(method = "Bing"),
+                             pop_lyrics_by_word %>% 
+                               inner_join(get_sentiments("nrc")) %>%
+                               filter(sentiment %in% c("positive", "negative")) %>%
+                               mutate(method = "NRC")) %>%
+  count(method, index = track_title, album, artist, gender, sentiment) %>%
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) %>%
+  mutate(sentiment = positive - negative)
+```
+
+```{r}
+lyrics_sentiments = bind_rows(lyrics_afinn, lyrics_bing_and_nrc)
+```
+
+```{r}
+lyrics_afinn_p = lyrics_sentiments %>% 
+  filter(method == "AFINN") %>% 
+  pivot_wider(names_from = method, values_from = sentiment)
+
+lyrics_bing_p = lyrics_sentiments %>% 
+  filter(method == "Bing") %>% 
+  pivot_wider(names_from = method, values_from = sentiment)
+
+lyrics_nrc_p = lyrics_sentiments %>% 
+  filter(method == "NRC") %>% 
+  pivot_wider(names_from = method, values_from = sentiment)
+
+lyrics_sentiments_p = lyrics_afinn_p %>%
+  inner_join(lyrics_bing_p, by = c("index", "artist", "album")) %>%
+  inner_join(lyrics_nrc_p, by = c("index", "artist", "album"))
+
+lyrics_sents_p_c = lyrics_sentiments_p %>%
+  select(index, artist, album, gender, AFINN, Bing, NRC) %>%
+  ungroup()
+
+# write_csv(lyrics_sents_p_c, "lyrics_sents_p_c.csv")
+```
+
+```{r}
+artist_song_counts = lyrics_sents_p_c %>%
+  count(artist)
+```
+
+```{r}
+lyrics_sents_totals = lyrics_sents_p_c %>%
+  group_by(artist) %>%
+  summarise(AFINN_total = sum(AFINN), Bing_total = sum(Bing), NRC_total = sum(NRC))
+```
+
+```{r}
+artist_song_avgs = lyrics_sents_totals %>%
+  inner_join(artist_song_counts, by = "artist") %>%
+  mutate(AFINN_song_avg = AFINN_total / n,
+         Bing_song_avg = Bing_total / n,
+         NRC_song_avg = NRC_total / n,
+         n_songs = n)
+
+scale_col = function(x, na.rm = FALSE) {
+  (x - mean(x, na.rm = na.rm)) / sd(x, na.rm)
+}
+
+artist_song_avgs_scaled = artist_song_avgs %>% 
+  mutate(across(ends_with("song_avg"), scale_col))
+```
+
+```{r}
+artist_song_avgs_scaled %>%
+  ggplot(aes(AFINN_song_avg)) +
+  geom_histogram()
+```
+
+```{r}
+# artist_song_avgs_scaled %>%
+#   mutate(AFINN_cdf = cume_dist(AFINN), 
+#          Bing_cdf = cume_dist(Bing), 
+#          NRC_cdf = cume_dist(NRC)) %>%
+#   filter(AFINN_cdf < 0.05 & Bing_cdf < 0.05 & NRC_cdf < 0.05)
+```
+
+```{r}
+lyrics_sents_p_c_scaled = lyrics_sents_p_c %>%
+  mutate(across(c("AFINN", "Bing", "NRC"), scale_col)) %>%
+  mutate(AFINN_cdf = cume_dist(AFINN), 
+         Bing_cdf = cume_dist(Bing), 
+         NRC_cdf = cume_dist(NRC))
+```
+
+So how do we define a very negative song?
+
+2 standard deviations below the mean is a reasonable cutoff value for "very negative": in any case, it is noticeably more negative than the average song.
+
+We include all songs who meet this cutoff on any one of the sentiment measures: this means that there is some interpretation of the song as very negative, even if other measures don't agree.
+
+```{r}
+very_neg_songs_by_sd = lyrics_sents_p_c_scaled %>%
+  filter(AFINN < -2 | Bing < -2 | NRC < -2)
+
+(very_neg_songs_by_sd %>% nrow()) %>%
+  "/"(lyrics_sents_p_c_scaled %>% nrow())
+```
+
+```{r}
+very_neg_songs_by_cdf = lyrics_sents_p_c_scaled %>%
+  filter(AFINN_cdf < 0.1 | Bing_cdf < 0.1 | NRC_cdf < 0.1)
+
+(very_neg_songs_by_cdf %>% nrow()) %>%
+  "/"(lyrics_sents_p_c_scaled %>% nrow())
+```
+
+R tip: infix operators are functions! That's why we can use the "/" operator in conjunction with the pipe.
+
+```{r}
+artist_counts_cdf = very_neg_songs_by_cdf %>%
+  count(artist)
+artist_counts_sd = very_neg_songs_by_sd %>%
+  count(artist)
+
+artist_props = artist_counts_cdf %>%
+  inner_join(artist_song_counts, by = "artist") %>%
+  rename(very_neg_cdf = n.x, total_songs = n.y) %>%
+  inner_join(artist_counts_sd, by = "artist") %>%
+  rename(very_neg_sd = n) %>%
+  mutate(cdf_prop = very_neg_cdf / total_songs, sd_prop = very_neg_sd / total_songs)
+```
+
+```{r}
+highlight_artist = function(df, artist_name) {
+  df %>% 
+    mutate(highlight = ifelse(artist == artist_name, "yes", "no")) %>%
+    return()
+}
+
+artist_highlight_bar = function() {
+  list(geom_col(),
+       coord_flip(),
+       scale_fill_manual(values = c("yes" = "tomato", "no" = "gray"),
+                         guide = FALSE)
+  )
+}
+```
+
+```{r}
+artist_props %>%
+  highlight_artist("Taylor Swift") %>%
+  ggplot(aes(x = reorder(artist, cdf_prop), y = cdf_prop, fill = highlight)) +
+  artist_highlight_bar() +
+  ggtitle("title")
+```
+
+```{r}
+artist_props %>%
+  highlight_artist("Taylor Swift") %>%
+  ggplot(aes(x = reorder(artist, sd_prop), y = sd_prop, fill = highlight)) +
+  artist_highlight_bar() +
+  ggtitle("title")
+```
+
+## Which are the most [insert artist here] words?
+
+```{r}
+# library(janeaustenr)
+# 
+# book_words <- austen_books() %>%
+#   unnest_tokens(word, text) %>%
+#   count(book, word, sort = TRUE)
+
+# book_words
+```
+
+```{r}
+artist_word_counts = pop_lyrics_by_word %>%
+  count(artist, word, sort = TRUE)
+
+total_words = artist_word_counts %>%
+  group_by(artist) %>%
+  summarise(total = sum(n))
+
+artist_word_counts = left_join(artist_word_counts, total_words)
+
+artist_word_counts
+```
+
+```{r}
+artist_word_counts %>%
+  bind_tf_idf(word, artist, n)
+```
+
+```{r}
+artist_word_counts %>%
+  arrange(tf_idf)
+```
+
+```{r}
+album_word_counts = pop_lyrics_by_word %>%
+  count(album, artist, word, sort = TRUE)
+
+total_album_words = album_word_counts %>%
+  group_by(artist) %>%
+  summarise(total = sum(n))
+
+album_word_counts = left_join(album_word_counts, total_words) %>%
+  bind_tf_idf(word, album, n)
+```
+
+```{r}
+album_word_counts %>% 
+  filter(artist == "Taylor Swift") %>%
+  arrange(desc(tf_idf)) %>%
+  mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  group_by(album) %>% 
+  top_n(5) %>% 
+  ungroup() %>%
+  ggplot(aes(word, tf_idf, fill = album)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~album, ncol = 2, scales = "free") +
+  coord_flip()
+```
+
+```{r}
+album_word_counts %>%
+  filter(album == "Folklore") %>%
+  # arrange(desc(tf_idf)) %>%
+  slice_max(tf_idf, n = 20) %>%
+  ggplot(aes(reorder(word, tf_idf), tf_idf, fill = album)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  coord_flip()
+```
+
+```{r}
+ts_word_counts = pop_lyrics_by_word %>%
+  filter(artist == "Taylor Swift") %>%
+  count(album, artist, word, sort = TRUE)
+
+total_ts_words = album_word_counts %>%
+  group_by(artist) %>%
+  summarise(total = sum(n))
+
+ts_word_counts = left_join(ts_word_counts, total_ts_words) %>%
+  bind_tf_idf(word, album, n)
+```
+
+```{r}
+ts_word_counts %>%
+  filter(album == "Folklore", word %in% c("bitch", "shit", "fuck")) %>%
+  # arrange(desc(tf_idf)) %>%
+  slice_max(tf_idf, n = 40) %>%
+  ggplot(aes(reorder(word, tf_idf), tf_idf, fill = album)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  coord_flip()
+```
+
+Further work:
+
+- Shiny app to display all of this for any artist/album in dataset
+- Entity-level sentiment analysis to determine how negatively an artist refers to other people
+- Figure out which songs concern romantic relationships
+- Better statistical tests for gender differences
