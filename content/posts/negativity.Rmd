@@ -1,0 +1,42 @@
+---
+title: "Negativity"
+author: "Carson Zhang"
+date: "8/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Anecdotally, I have observed strong criticism of Taylor Swift. In particular, people believe she writes an inordinate number of songs about her relationship problems. Furthermore, in those songs, she disproportionately blames her partners for those problems, instead of accepting responsibility herself. 
+
+My guess is that this belief was never based on careful analysis of her entire discography. It was likely informed by a small number of particularly negative songs, if even based on any data at all.
+
+Determining which songs are very negative, and how many songs are very negative, may shed light on how this belief originated. It may also reveal whether she has more very negative songs than other artists; perhaps other artists deserve the criticism more than she does, and Taylor Swift has been singled out for unwarranted reasons.
+
+However, although the measures I present - negativity, frequency of you-pronouns - may seem promising at first, I will argue that you should not use them to measure blame directionality.
+
+## Data collection
+
+I scraped the discographies of the musical artists with the best-selling singles. I think these artists are the best candidates for similar opinions: I believe they are formed from popular songs, which are almost always released as singles.
+
+Lyrics were collected from Genius, using the `genius` package. Unlike many other lyrics sites, Genius has a verification process: many lyrics are officially verified by the artists themselves.
+
+```{r}
+library(tidyverse)
+library(tidytext)
+```
+
+```{r}
+artist_albums = read_csv("artist_albums.csv")
+pop_lyrics = read_csv("pop_lyrics.csv")
+pop_lyrics_by_word = pop_lyrics %>%
+  unnest_tokens(word, lyric)
+```
+
+```{r}
+
+```
+
+
