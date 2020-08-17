@@ -1,8 +1,8 @@
 ---
 title: About
-date: "2020-06-16"
+date: "2020-08-17"
 ---
 
-I studied Statistics and Computer Science at UIUC.
+I have a BS in Statistics and Computer Science at UIUC.
 
 I'm on the job market!
